@@ -1,330 +1,244 @@
+/* Decompiler 429ms, total 753ms, lines 244 */
 package mines;
 
 import java.awt.Graphics;
 import java.awt.Image;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.Random;
-
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-
 public class Board extends JPanel {
-	private static final long serialVersionUID = 6195235521361212179L;
-	
-	private final int NUM_IMAGES = 13;
-    private final int CELL_SIZE = 15;
+   private static final long serialVersionUID = 6195235521361212179L;
+   private final int NUM_IMAGES = 13;
+   private final int CELL_SIZE = 15;
+   private final int COVER_FOR_CELL = 10;
+   private final int MARK_FOR_CELL = 10;
+   private final int EMPTY_CELL = 0;
+   private final int MINE_CELL = 9;
+   private final int COVERED_MINE_CELL = 19;
+   private final int MARKED_MINE_CELL = 29;
+   private final int DRAW_MINE = 9;
+   private final int DRAW_COVER = 10;
+   private final int DRAW_MARK = 11;
+   private final int DRAW_WRONG_MARK = 12;
+   private int[] field;
+   private boolean inGame;
+   private int mines_left;
+   private Image[] img;
+   private int mines = 40;
+   private int rows = 16;
+   private int cols = 16;
+   private int all_cells;
+   private JLabel statusbar;
 
-    private final int COVER_FOR_CELL = 10;
-    private final int MARK_FOR_CELL = 10;
-    private final int EMPTY_CELL = 0;
-    private final int MINE_CELL = 9;
-    private final int COVERED_MINE_CELL = MINE_CELL + COVER_FOR_CELL;
-    private final int MARKED_MINE_CELL = COVERED_MINE_CELL + MARK_FOR_CELL;
+   public Board(JLabel var1) {
+      this.statusbar = var1;
+      this.img = new Image[13];
 
-    private final int DRAW_MINE = 9;
-    private final int DRAW_COVER = 10;
-    private final int DRAW_MARK = 11;
-    private final int DRAW_WRONG_MARK = 12;
+      for(int var2 = 0; var2 < 13; ++var2) {
+         this.img[var2] = (new ImageIcon(this.getClass().getClassLoader().getResource(var2 + ".gif"))).getImage();
+      }
 
-    private int[] field;
-    private boolean inGame;
-    private int mines_left;
-    private Image[] img;
-    private int mines = 40;
-    private int rows = 16;
-    private int cols = 16;
-    private int all_cells;
-    private JLabel statusbar;
+      this.setDoubleBuffered(true);
+      this.addMouseListener(new mines.Board.MinesAdapter(this));
+      this.newGame();
+   }
 
+   public void newGame() {
+      boolean var3 = false;
+      boolean var4 = false;
+      boolean var5 = false;
+      Random var1 = new Random();
+      this.inGame = true;
+      this.mines_left = this.mines;
+      this.all_cells = this.rows * this.cols;
+      this.field = new int[this.all_cells];
 
-    public Board(JLabel statusbar) {
+      int var6;
+      for(var6 = 0; var6 < this.all_cells; ++var6) {
+         this.field[var6] = 10;
+      }
 
-        this.statusbar = statusbar;
+      this.statusbar.setText(Integer.toString(this.mines_left));
+      var6 = 0;
 
-        img = new Image[NUM_IMAGES];
+      while(var6 < this.mines) {
+         int var7 = (int)((double)this.all_cells * var1.nextDouble());
+         if (var7 < this.all_cells && this.field[var7] != 19) {
+            int var2 = var7 % this.cols;
+            this.field[var7] = 19;
+            ++var6;
+            int var10002;
+            int var8;
+            if (var2 > 0) {
+               var8 = var7 - 1 - this.cols;
+               if (var8 >= 0 && this.field[var8] != 19) {
+                  var10002 = this.field[var8]++;
+               }
 
-        for (int i = 0; i < NUM_IMAGES; i++) {
-			img[i] =
-                    (new ImageIcon(getClass().getClassLoader().getResource((i)
-            			    + ".gif"))).getImage();
-        }
+               var8 = var7 - 1;
+               if (var8 >= 0 && this.field[var8] != 19) {
+                  var10002 = this.field[var8]++;
+               }
 
-        setDoubleBuffered(true);
-
-        addMouseListener(new MinesAdapter());
-        newGame();
-    }
-
-
-    public void newGame() {
-
-        Random random;
-        int current_col;
-
-        int i = 0;
-        int position = 0;
-        int cell = 0;
-
-        random = new Random();
-        inGame = true;
-        mines_left = mines;
-
-        all_cells = rows * cols;
-        field = new int[all_cells];
-        
-        for (i = 0; i < all_cells; i++)
-            field[i] = COVER_FOR_CELL;
-
-        statusbar.setText(Integer.toString(mines_left));
-
-
-        i = 0;
-        while (i < mines) {
-
-            position = (int) (all_cells * random.nextDouble());
-
-            if ((position < all_cells) &&
-                (field[position] != COVERED_MINE_CELL)) {
-
-
-                current_col = position % cols;
-                field[position] = COVERED_MINE_CELL;
-                i++;
-
-                if (current_col > 0) { 
-                    cell = position - 1 - cols;
-                    if (cell >= 0)
-                        if (field[cell] != COVERED_MINE_CELL)
-                            field[cell] += 1;
-                    cell = position - 1;
-                    if (cell >= 0)
-                        if (field[cell] != COVERED_MINE_CELL)
-                            field[cell] += 1;
-
-                    cell = position + cols - 1;
-                    if (cell < all_cells)
-                        if (field[cell] != COVERED_MINE_CELL)
-                            field[cell] += 1;
-                }
-
-                cell = position - cols;
-                if (cell >= 0)
-                    if (field[cell] != COVERED_MINE_CELL)
-                        field[cell] += 1;
-                cell = position + cols;
-                if (cell < all_cells)
-                    if (field[cell] != COVERED_MINE_CELL)
-                        field[cell] += 1;
-
-                if (current_col < (cols - 1)) {
-                    cell = position - cols + 1;
-                    if (cell >= 0)
-                        if (field[cell] != COVERED_MINE_CELL)
-                            field[cell] += 1;
-                    cell = position + cols + 1;
-                    if (cell < all_cells)
-                        if (field[cell] != COVERED_MINE_CELL)
-                            field[cell] += 1;
-                    cell = position + 1;
-                    if (cell < all_cells)
-                        if (field[cell] != COVERED_MINE_CELL)
-                            field[cell] += 1;
-                }
-            }
-        }
-    }
-
-
-    public void find_empty_cells(int j) {
-
-        int current_col = j % cols;
-        int cell;
-
-        if (current_col > 0) { 
-            cell = j - cols - 1;
-            if (cell >= 0)
-                if (field[cell] > MINE_CELL) {
-                    field[cell] -= COVER_FOR_CELL;
-                    if (field[cell] == EMPTY_CELL)
-                        find_empty_cells(cell);
-                }
-
-            cell = j - 1;
-            if (cell >= 0)
-                if (field[cell] > MINE_CELL) {
-                    field[cell] -= COVER_FOR_CELL;
-                    if (field[cell] == EMPTY_CELL)
-                        find_empty_cells(cell);
-                }
-
-            cell = j + cols - 1;
-            if (cell < all_cells)
-                if (field[cell] > MINE_CELL) {
-                    field[cell] -= COVER_FOR_CELL;
-                    if (field[cell] == EMPTY_CELL)
-                        find_empty_cells(cell);
-                }
-        }
-
-        cell = j - cols;
-        if (cell >= 0)
-            if (field[cell] > MINE_CELL) {
-                field[cell] -= COVER_FOR_CELL;
-                if (field[cell] == EMPTY_CELL)
-                    find_empty_cells(cell);
+               var8 = var7 + this.cols - 1;
+               if (var8 < this.all_cells && this.field[var8] != 19) {
+                  var10002 = this.field[var8]++;
+               }
             }
 
-        cell = j + cols;
-        if (cell < all_cells)
-            if (field[cell] > MINE_CELL) {
-                field[cell] -= COVER_FOR_CELL;
-                if (field[cell] == EMPTY_CELL)
-                    find_empty_cells(cell);
+            var8 = var7 - this.cols;
+            if (var8 >= 0 && this.field[var8] != 19) {
+               var10002 = this.field[var8]++;
             }
 
-        if (current_col < (cols - 1)) {
-            cell = j - cols + 1;
-            if (cell >= 0)
-                if (field[cell] > MINE_CELL) {
-                    field[cell] -= COVER_FOR_CELL;
-                    if (field[cell] == EMPTY_CELL)
-                        find_empty_cells(cell);
-                }
-
-            cell = j + cols + 1;
-            if (cell < all_cells)
-                if (field[cell] > MINE_CELL) {
-                    field[cell] -= COVER_FOR_CELL;
-                    if (field[cell] == EMPTY_CELL)
-                        find_empty_cells(cell);
-                }
-
-            cell = j + 1;
-            if (cell < all_cells)
-                if (field[cell] > MINE_CELL) {
-                    field[cell] -= COVER_FOR_CELL;
-                    if (field[cell] == EMPTY_CELL)
-                        find_empty_cells(cell);
-                }
-        }
-
-    }
-
-    public void paint(Graphics g) {
-
-        int cell = 0;
-        int uncover = 0;
-
-
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-
-                cell = field[(i * cols) + j];
-
-                if (inGame && cell == MINE_CELL)
-                    inGame = false;
-
-                if (!inGame) {
-                    if (cell == COVERED_MINE_CELL) {
-                        cell = DRAW_MINE;
-                    } else if (cell == MARKED_MINE_CELL) {
-                        cell = DRAW_MARK;
-                    } else if (cell > COVERED_MINE_CELL) {
-                        cell = DRAW_WRONG_MARK;
-                    } else if (cell > MINE_CELL) {
-                        cell = DRAW_COVER;
-                    }
-
-
-                } else {
-                    if (cell > COVERED_MINE_CELL)
-                        cell = DRAW_MARK;
-                    else if (cell > MINE_CELL) {
-                        cell = DRAW_COVER;
-                        uncover++;
-                    }
-                }
-
-                g.drawImage(img[cell], (j * CELL_SIZE),
-                    (i * CELL_SIZE), this);
-            }
-        }
-
-
-        if (uncover == 0 && inGame) {
-            inGame = false;
-            statusbar.setText("Game won");
-        } else if (!inGame)
-            statusbar.setText("Game lost");
-    }
-
-
-    class MinesAdapter extends MouseAdapter {
-        public void mousePressed(MouseEvent e) {
-
-            int x = e.getX();
-            int y = e.getY();
-
-            int cCol = x / CELL_SIZE;
-            int cRow = y / CELL_SIZE;
-
-            boolean rep = false;
-
-
-            if (!inGame) {
-                newGame();
-                repaint();
+            var8 = var7 + this.cols;
+            if (var8 < this.all_cells && this.field[var8] != 19) {
+               var10002 = this.field[var8]++;
             }
 
+            if (var2 < this.cols - 1) {
+               var8 = var7 - this.cols + 1;
+               if (var8 >= 0 && this.field[var8] != 19) {
+                  var10002 = this.field[var8]++;
+               }
 
-            if ((x < cols * CELL_SIZE) && (y < rows * CELL_SIZE)) {
+               var8 = var7 + this.cols + 1;
+               if (var8 < this.all_cells && this.field[var8] != 19) {
+                  var10002 = this.field[var8]++;
+               }
 
-                if (e.getButton() == MouseEvent.BUTTON3) {
-
-                    if (field[(cRow * cols) + cCol] > MINE_CELL) {
-                        rep = true;
-
-                        if (field[(cRow * cols) + cCol] <= COVERED_MINE_CELL) {
-                            if (mines_left > 0) {
-                                field[(cRow * cols) + cCol] += MARK_FOR_CELL;
-                                mines_left--;
-                                statusbar.setText(Integer.toString(mines_left));
-                            } else
-                                statusbar.setText("No marks left");
-                        } else {
-
-                            field[(cRow * cols) + cCol] -= MARK_FOR_CELL;
-                            mines_left++;
-                            statusbar.setText(Integer.toString(mines_left));
-                        }
-                    }
-
-                } else {
-
-                    if (field[(cRow * cols) + cCol] > COVERED_MINE_CELL) {
-                        return;
-                    }
-
-                    if ((field[(cRow * cols) + cCol] > MINE_CELL) &&
-                        (field[(cRow * cols) + cCol] < MARKED_MINE_CELL)) {
-
-                        field[(cRow * cols) + cCol] -= COVER_FOR_CELL;
-                        rep = true;
-
-                        if (field[(cRow * cols) + cCol] == MINE_CELL)
-                            inGame = false;
-                        if (field[(cRow * cols) + cCol] == EMPTY_CELL)
-                            find_empty_cells((cRow * cols) + cCol);
-                    }
-                }
-
-                if (rep)
-                    repaint();
-
+               var8 = var7 + 1;
+               if (var8 < this.all_cells && this.field[var8] != 19) {
+                  var10002 = this.field[var8]++;
+               }
             }
-        }
-    }
+         }
+      }
+
+   }
+
+   public void find_empty_cells(int var1) {
+      int var2 = var1 % this.cols;
+      int[] var10000;
+      int var3;
+      if (var2 > 0) {
+         var3 = var1 - this.cols - 1;
+         if (var3 >= 0 && this.field[var3] > 9) {
+            var10000 = this.field;
+            var10000[var3] -= 10;
+            if (this.field[var3] == 0) {
+               this.find_empty_cells(var3);
+            }
+         }
+
+         var3 = var1 - 1;
+         if (var3 >= 0 && this.field[var3] > 9) {
+            var10000 = this.field;
+            var10000[var3] -= 10;
+            if (this.field[var3] == 0) {
+               this.find_empty_cells(var3);
+            }
+         }
+
+         var3 = var1 + this.cols - 1;
+         if (var3 < this.all_cells && this.field[var3] > 9) {
+            var10000 = this.field;
+            var10000[var3] -= 10;
+            if (this.field[var3] == 0) {
+               this.find_empty_cells(var3);
+            }
+         }
+      }
+
+      var3 = var1 - this.cols;
+      if (var3 >= 0 && this.field[var3] > 9) {
+         var10000 = this.field;
+         var10000[var3] -= 10;
+         if (this.field[var3] == 0) {
+            this.find_empty_cells(var3);
+         }
+      }
+
+      var3 = var1 + this.cols;
+      if (var3 < this.all_cells && this.field[var3] > 9) {
+         var10000 = this.field;
+         var10000[var3] -= 10;
+         if (this.field[var3] == 0) {
+            this.find_empty_cells(var3);
+         }
+      }
+
+      if (var2 < this.cols - 1) {
+         var3 = var1 - this.cols + 1;
+         if (var3 >= 0 && this.field[var3] > 9) {
+            var10000 = this.field;
+            var10000[var3] -= 10;
+            if (this.field[var3] == 0) {
+               this.find_empty_cells(var3);
+            }
+         }
+
+         var3 = var1 + this.cols + 1;
+         if (var3 < this.all_cells && this.field[var3] > 9) {
+            var10000 = this.field;
+            var10000[var3] -= 10;
+            if (this.field[var3] == 0) {
+               this.find_empty_cells(var3);
+            }
+         }
+
+         var3 = var1 + 1;
+         if (var3 < this.all_cells && this.field[var3] > 9) {
+            var10000 = this.field;
+            var10000[var3] -= 10;
+            if (this.field[var3] == 0) {
+               this.find_empty_cells(var3);
+            }
+         }
+      }
+
+   }
+
+   public void paint(Graphics var1) {
+      boolean var2 = false;
+      int var3 = 0;
+
+      for(int var4 = 0; var4 < this.rows; ++var4) {
+         for(int var5 = 0; var5 < this.cols; ++var5) {
+            int var6 = this.field[var4 * this.cols + var5];
+            if (this.inGame && var6 == 9) {
+               this.inGame = false;
+            }
+
+            if (!this.inGame) {
+               if (var6 == 19) {
+                  var6 = 9;
+               } else if (var6 == 29) {
+                  var6 = 11;
+               } else if (var6 > 19) {
+                  var6 = 12;
+               } else if (var6 > 9) {
+                  var6 = 10;
+               }
+            } else if (var6 > 19) {
+               var6 = 11;
+            } else if (var6 > 9) {
+               var6 = 10;
+               ++var3;
+            }
+
+            var1.drawImage(this.img[var6], var5 * 15, var4 * 15, this);
+         }
+      }
+
+      if (var3 == 0 && this.inGame) {
+         this.inGame = false;
+         this.statusbar.setText("Game won");
+      } else if (!this.inGame) {
+         this.statusbar.setText("Game lost");
+      }
+
+   }
 }
