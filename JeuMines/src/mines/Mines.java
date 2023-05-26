@@ -1,37 +1,76 @@
+/* Decompiler 12ms, total 648ms, lines 76 */
 package mines;
 
-import java.awt.BorderLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
-import javax.swing.JFrame;
-import javax.swing.JLabel;
+class Board$MinesAdapter extends MouseAdapter {
+   // $FF: synthetic field
+   final Board this$0;
 
-// Source: http://zetcode.com/tutorials/javagamestutorial/minesweeper/
+   Board$MinesAdapter(Board var1) {
+      this.this$0 = var1;
+   }
 
-public class Mines extends JFrame {
-	private static final long serialVersionUID = 4772165125287256837L;
-	
-	private final int WIDTH = 250;
-    private final int HEIGHT = 290;
+   public void mousePressed(MouseEvent var1) {
+      int var2 = var1.getX();
+      int var3 = var1.getY();
+      int var4 = var2 / 15;
+      int var5 = var3 / 15;
+      boolean var6 = false;
+      if (!this.this$0.inGame) {
+         this.this$0.newGame();
+         this.this$0.repaint();
+      }
 
-    private JLabel statusbar;
-    
-    public Mines() {
+      if (var2 < this.this$0.cols * 15 && var3 < this.this$0.rows * 15) {
+         int[] var10000;
+         int var10001;
+         if (var1.getButton() == 3) {
+            if (this.this$0.field[var5 * this.this$0.cols + var4] > 9) {
+               var6 = true;
+               if (this.this$0.field[var5 * this.this$0.cols + var4] <= 19) {
+                  if (this.this$0.mines_left > 0) {
+                     var10000 = this.this$0.field;
+                     var10001 = var5 * this.this$0.cols + var4;
+                     var10000[var10001] += 10;
+                     --this.this$0.mines_left;
+                     this.this$0.statusbar.setText(Integer.toString(this.this$0.mines_left));
+                  } else {
+                     this.this$0.statusbar.setText("No marks left");
+                  }
+               } else {
+                  var10000 = this.this$0.field;
+                  var10001 = var5 * this.this$0.cols + var4;
+                  var10000[var10001] -= 10;
+                  ++this.this$0.mines_left;
+                  this.this$0.statusbar.setText(Integer.toString(this.this$0.mines_left));
+               }
+            }
+         } else {
+            if (this.this$0.field[var5 * this.this$0.cols + var4] > 19) {
+               return;
+            }
 
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(WIDTH, HEIGHT);
-        setLocationRelativeTo(null);
-        setTitle("Minesweeper");
+            if (this.this$0.field[var5 * this.this$0.cols + var4] > 9 && this.this$0.field[var5 * this.this$0.cols + var4] < 29) {
+               var10000 = this.this$0.field;
+               var10001 = var5 * this.this$0.cols + var4;
+               var10000[var10001] -= 10;
+               var6 = true;
+               if (this.this$0.field[var5 * this.this$0.cols + var4] == 9) {
+                  this.this$0.inGame = false;
+               }
 
-        statusbar = new JLabel("");
-        add(statusbar, BorderLayout.SOUTH);
+               if (this.this$0.field[var5 * this.this$0.cols + var4] == 0) {
+                  this.this$0.find_empty_cells(var5 * this.this$0.cols + var4);
+               }
+            }
+         }
 
-        add(new Board(statusbar));
+         if (var6) {
+            this.this$0.repaint();
+         }
+      }
 
-        setResizable(false);
-        setVisible(true);
-    }
-    
-    public static void main(String[] args) {
-        new Mines();
-    }
+   }
 }
